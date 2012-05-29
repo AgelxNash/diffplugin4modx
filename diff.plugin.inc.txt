@@ -1,56 +1,35 @@
 //<?
-/**************************************
-/** 
-* Diff plugin for Modx Evo
+/**************************************/
+/** Diff plugin for Modx Evo
 *
-* en: Class to work with the history of changes in snippets, chunks, templates, modules and plugins
-* ru: Класс для работы с историей изменений в сниппетах, чанках, шаблонах, модулях и плагинах
-* 
-* Сохранение элемента
-* <code>
-* $Diff=new ElementVer($modx,'template',$folderPlugin);
-* $Diff->save($modx->Event->params['id'],'post');
-* </code>
-*
-* Удаление элемента
-* <code>
-* $Diff=new ElementVer($modx,'snippet',$folderPlugin);
-* $Diff->del($modx->Event->params['id']);
-* </code>
-*
-* Вывод формы с версиями
-* <code>
-* $Diff=new ElementVer($modx,'snippet',$folderPlugin);
-* $out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
-* $modx->Event->output($out);
-* </code>
-*
-* @version 2.0
-* @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
-* @date 30.05.2012
-* @copyright 2012 Agel Nash
-* @link http://agel-nash.ru
-* @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
+* @version 2.1
+* @author Borisov Evgeniy aka Agel Nash (agel-nash@xaker.ru)
+* @date 31.05.2012
 *
 * @category plugin
-* @internal @event OnSnipFormSave,OnSnipFormRender,OnSnipFormDelete
-* @internal @properties &nameBlock=Заголовок;text;Версии &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,Локально (assets/js),Удаленно (google code),Свой url;Удаленно (google code) &js_src_type=Свой url к библиотеке jQuery;text;
+* @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender
+* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &lang=Локализация;list;en,ru;ru
 * @internal @modx_category Manager and Admin
-* 
+*
+* @todo Добавить в параметры возможность выбрать историю каких элементов сохранять
+* @todo Добавить поддержку чанков
+* @todo Автоматическое определение локализации
+* @todo Вынести папки с историей в /assets/cache/
 */
 /*************************************/
 include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/lang_'.$lang.'.inc.php');
 include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/version.class.php');
 
 switch($modx->Event->name){
-	case 'OnTempFormSave':{
-		$Diff=new ElementVer($modx,'template',$folderPlugin);
-		$Diff->save($modx->Event->params['id'],'post');
-		break;
-	}
+	/** Template */
 	case 'OnTempFormDelete':{
 		$Diff=new ElementVer($modx,'template',$folderPlugin);
 		$Diff->del($modx->Event->params['id']);
+		break;
+	}
+	case 'OnTempFormSave':{
+		$Diff=new ElementVer($modx,'template',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
 		break;
 	}
 	case 'OnTempFormRender':{
@@ -59,7 +38,8 @@ switch($modx->Event->name){
 		$modx->Event->output($out);
 		break;
 	}
-/*Snippet*/
+	
+	/** Snippet */
 	case 'OnSnipFormDelete':{
 		$Diff=new ElementVer($modx,'snippet',$folderPlugin);
 		$Diff->del($modx->Event->params['id']);
@@ -72,6 +52,60 @@ switch($modx->Event->name){
 	}
 	case 'OnSnipFormRender':{
 		$Diff=new ElementVer($modx,'snippet',$folderPlugin);
+		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+		$modx->Event->output($out);
+		break;
+	}
+	
+	/** Plugin */
+	case 'OnPluginFormDelete':{
+		$Diff=new ElementVer($modx,'plugin',$folderPlugin);
+		$Diff->del($modx->Event->params['id']);
+		break;
+	}
+	case 'OnPluginFormSave':{
+		$Diff=new ElementVer($modx,'plugin',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
+		break;
+	}
+	case 'OnPluginFormRender':{
+		$Diff=new ElementVer($modx,'plugin',$folderPlugin);
+		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+		$modx->Event->output($out);
+		break;
+	}
+	
+	/** Module */
+	case 'OnModFormDelete':{
+		$Diff=new ElementVer($modx,'module',$folderPlugin);
+		$Diff->del($modx->Event->params['id']);
+		break;
+	}
+	case 'OnModFormSave':{
+		$Diff=new ElementVer($modx,'module',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
+		break;
+	}
+	case 'OnModFormRender':{
+		$Diff=new ElementVer($modx,'module',$folderPlugin);
+		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+		$modx->Event->output($out);
+		break;
+	}
+	
+	/** Chunk */
+	case 'OnChunkFormDelete':{
+		$Diff=new ElementVer($modx,'chunk',$folderPlugin);
+		$Diff->del($modx->Event->params['id']);
+		break;
+	}
+	case 'OnChunkFormSave':{
+		$Diff=new ElementVer($modx,'chunk',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
+		break;
+	}
+	case 'OnChunkFormRender':{
+		$Diff=new ElementVer($modx,'chunk',$folderPlugin);
 		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
 		$modx->Event->output($out);
 		break;

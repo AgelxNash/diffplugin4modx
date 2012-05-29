@@ -25,18 +25,21 @@
 * $modx->Event->output($out);
 * </code>
 *
-* @version 2.0
+* @version 2.1
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
-* @date 30.05.2012
+* @date 31.05.2012
 * @copyright 2012 Agel Nash
 * @link http://agel-nash.ru
 * @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
 *
-* @category plugin
-* @internal @event OnSnipFormSave,OnSnipFormRender,OnSnipFormDelete
-* @internal @properties &nameBlock=Заголовок;text;Версии &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,Локально (assets/js),Удаленно (google code),Свой url;Удаленно (google code) &js_src_type=Свой url к библиотеке jQuery;text;
+* @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender
+* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &lang=Локализация;list;en,ru;ru
 * @internal @modx_category Manager and Admin
-* 
+*
+* @todo Добавить в параметры возможность выбрать историю каких элементов сохранять
+* @todo Добавить поддержку чанков
+* @todo Автоматическое определение локализации
+* @todo Вынести папки с историей в /assets/cache/
 */
 /*************************************/
 
@@ -238,13 +241,14 @@ class ElementVer implements langVer{
 	private function getDataVer($id){
 		$out=array();
 		$flag=true;
+		$data=array();
 		$dir=$this->GVD(true,true);
 		
 		if(!file_exists($dir.$this->verfile)){
 			$flag=false;
+		}else{
+			$data=unserialize(file_get_contents($dir.$this->verfile));
 		}
-		
-		$data=unserialize(file_get_contents($dir.$this->verfile));
 		if(isset($data[$id]) && $flag){
 			$this->ver=$data[$id]['last'];
 			unset($data[$id]['last']);
@@ -298,6 +302,22 @@ class ElementVer implements langVer{
 				$id=$this->modx->Event->params['id'];
 				break;
 			}
+			case 'plugin':{
+				$js_tab_object='tpSnippet';
+				$lastTab='tabEvents';
+				$id=$this->modx->Event->params['id'];
+				break;
+			}
+			case 'module':{
+				$js_tab_object='tpModule';
+				$lastTab='tabDepend';
+				$id=$this->modx->Event->params['id'];
+				break;
+			}
+			case 'chunk':{
+				/** @todo поддержка чанков */
+				exit();
+			}
 			default:{
 				exit(langVer::err_mode);
 			}
@@ -313,7 +333,7 @@ class ElementVer implements langVer{
 		\$".$this->jqname."('div#'+mm_lastTab).after('".$output."'); 
 		mm_lastTab = 'tab".$idBlock."'; ".
 		$js_tab_object.".addTabPage( document.getElementById( \"tab".$idBlock."\" ) ); 
-		\$".$this->jqname."('div.sectionBody').before('<div class=\"sectionBody\"><p><strong>".langVer::form_descver.":</strong></p><input type=\"text\" name=\"descVersion\" style=\"width:100%\"></p><p><input type=\"checkbox\" name=\"savev\" checked /> ".langVer::form_savever."</p></div>');
+		\$".$this->jqname."('div.sectionBody:first').before('<div class=\"sectionBody\"><p><strong>".langVer::form_descver.":</strong></p><input type=\"text\" name=\"descVersion\" style=\"width:100%\"></p><p><input type=\"checkbox\" name=\"savev\" checked /> ".langVer::form_savever."</p></div>');
 		\$".$this->jqname."('.loadversion').click(function(el){
 			\$".$this->jqname.".ajax({
 				url: '".$this->GVD(false,false)."version.ajax.php?mode=load&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
