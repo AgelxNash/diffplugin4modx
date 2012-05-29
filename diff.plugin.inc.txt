@@ -1,176 +1,79 @@
 //<?
 /**************************************
-** Diff plugin for Modx Evo
-**
-** @category plugin
-** @version 1.0
-** @author Borisov Evgeniy aka Agel Nash (agel-nash@xaker.ru)
-** @date 28.05.2012
-**
-** @internal @event OnSnipFormSave,OnSnipFormRender,OnSnipFormDelete
-** @internal @properties &nameBlock=Заголовок;text;Версии &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,Локально (assets/js),Удаленно (google code),Свой url;Удаленно (google code) &js_src_type=Свой url к библиотеке jQuery;text;
-** @internal @modx_category Manager and Admin
-**
-**
-*************************************/
+/** 
+* Diff plugin for Modx Evo
+*
+* en: Class to work with the history of changes in snippets, chunks, templates, modules and plugins
+* ru: Класс для работы с историей изменений в сниппетах, чанках, шаблонах, модулях и плагинах
+* 
+* Сохранение элемента
+* <code>
+* $Diff=new ElementVer($modx,'template',$folderPlugin);
+* $Diff->save($modx->Event->params['id'],'post');
+* </code>
+*
+* Удаление элемента
+* <code>
+* $Diff=new ElementVer($modx,'snippet',$folderPlugin);
+* $Diff->del($modx->Event->params['id']);
+* </code>
+*
+* Вывод формы с версиями
+* <code>
+* $Diff=new ElementVer($modx,'snippet',$folderPlugin);
+* $out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+* $modx->Event->output($out);
+* </code>
+*
+* @version 2.0
+* @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
+* @date 30.05.2012
+* @copyright 2012 Agel Nash
+* @link http://agel-nash.ru
+* @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
+*
+* @category plugin
+* @internal @event OnSnipFormSave,OnSnipFormRender,OnSnipFormDelete
+* @internal @properties &nameBlock=Заголовок;text;Версии &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,Локально (assets/js),Удаленно (google code),Свой url;Удаленно (google code) &js_src_type=Свой url к библиотеке jQuery;text;
+* @internal @modx_category Manager and Admin
+* 
+*/
+/*************************************/
+include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/lang_'.$lang.'.inc.php');
+include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/version.class.php');
 
-global $e;
-$e=&$modx->Event;
-$dir=$modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/snippet/';
-$version='version.inc';
-// JS URL
-switch ($which_jquery) {
-	case 'Не подключать':{
-		$js_include='';
+switch($modx->Event->name){
+	case 'OnTempFormSave':{
+		$Diff=new ElementVer($modx,'template',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
 		break;
 	}
-	case 'Локально (assets/js)':{
-		$js_include  = '<script src="'.$modx->config['site_url']. '/assets/js/jquery-1.4.4.min.js" type="text/javascript"></script><script type="text/javascript">var $j = jQuery.noConflict();</script>';
+	case 'OnTempFormDelete':{
+		$Diff=new ElementVer($modx,'template',$folderPlugin);
+		$Diff->del($modx->Event->params['id']);
 		break;
 	}
-	case 'Свой url':{
-		$js_include  = '<script src="'.$js_src_type.'" type="text/javascript"></script><script type="text/javascript">var $j = jQuery.noConflict();</script>';
+	case 'OnTempFormRender':{
+		$Diff=new ElementVer($modx,'template',$folderPlugin);
+		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+		$modx->Event->output($out);
 		break;
 	}
-	default:{
-		$js_include  = '<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript"></script><script type="text/javascript">var $j = jQuery.noConflict();</script>';
-	}
-}
-
-switch($e->name){
+/*Snippet*/
 	case 'OnSnipFormDelete':{
-		if(file_exists($dir.'/'.$version)){
-			$data=unserialize(file_get_contents($dir.'/'.$version));
-			if(isset($data[$e->params['id']]['last'])){
-				unset($data[$e->params['id']]['last']);
-				foreach($data[$e->params['id']] as $id=>$item){
-					unlink($dir.$e->params['id'].'/'.$item['file']);
-				}
-				unset($data[$e->params['id']]);
-				if(is_dir($dir.$e->params['id'])) {
-					rmdir($dir.$e->params['id'].'/');
-				}
-				file_put_contents($dir.'/'.$version,serialize($data));
-			}
-		}
+		$Diff=new ElementVer($modx,'snippet',$folderPlugin);
+		$Diff->del($modx->Event->params['id']);
 		break;
 	}
 	case 'OnSnipFormSave':{
-		//ID сниппета: $e->params['id'];
-		//Исходник: $_POST['post'];
-		$desc=isset($_POST['descVersion'])?$_POST['descVersion']:'';
-		if(isset($_POST['savev'])){
-			$put=base64_encode($_POST['post']);
-
-			if(!is_dir($dir.$e->params['id'])) {
-				mkdir($dir.$e->params['id'],0777,true);
-			}
-			$file=md5($put);
-			if(!file_exists($dir.$e->params['id'].'/'.md5($put))){
-				file_put_contents($dir.$e->params['id'].'/'.md5($put),$put);
-				$flag=true;
-			}
-			if($flag || $desc!=''){
-				if(file_exists($dir.'/'.$version)){
-					$data=unserialize(file_get_contents($dir.'/'.$version));
-					$ver=$data[$e->params['id']]['last'];
-					if($flag){
-						$data[$e->params['id']]['last']++;
-						$ver++;
-						$data[$e->params['id']][$ver]['file']=$file;
-					}
-					$data[$e->params['id']][$ver]['desc']=$desc;
-				}else{
-					$data[$e->params['id']]['last']=1;
-					$data[$e->params['id']][1]['desc']=$desc;
-					$data[$e->params['id']][1]['file']=$file;
-				}
-				file_put_contents($dir.'/'.$version,serialize($data));
-			}
-		}
+		$Diff=new ElementVer($modx,'snippet',$folderPlugin);
+		$Diff->save($modx->Event->params['id'],'post');
 		break;
 	}
 	case 'OnSnipFormRender':{
-		$js_tab_object='tpSnippet';
-		if(file_exists($dir.'/'.$version)){
-			$data=unserialize(file_get_contents($dir.'/'.$version));
-			if(isset($data[$e->params['id']])){
-				$ver=$data[$e->params['id']]['last'];
-				unset($data[$e->params['id']]['last']);
-				$out=array();
-				foreach($data[$e->params['id']] as $id=>$desc){
-					$tmp='';
-					if($desc['desc']==''){
-						$tmp='без описания';
-					}else{
-						$tmp=htmlspecialchars($desc['desc']);
-					}
-					if($id!=$ver){
-						$out[$id]='ver '.$id.': <i>'.$tmp.'</i> ';
-						$out[$id].=' &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delversion" rel="'.$desc['file'].'">Удалить</a> | <a href="#" class="loadversion" rel="'.$desc['file'].'">Загрузить </a> ';
-					}else{
-						$out[$id]='<strong>ver '.$id.': <i>'.$tmp.'</i></strong>';
-					}
-				}
-			}
-		}
-		if(count($out)>0){
-			$out=array_reverse($out);
-			$out=$modx->makeList($out);
-		}else{
-			$out="<p>Других версий этого сниппета нет</p>";
-		}
-		$intro='<tr><td>'.str_replace("'","\"",$out).'</td></tr>';
-
- 		$empty_tab = '<div class="tab-page" id="tab'.$idBlock.'"><h2 class="tab">'.$nameBlock.'</h2><table width="90%" border="0" cellspacing="0" cellpadding="0" >'.$intro.'</table></div>';
-		$empty_tab=str_replace( array("\n", "\t", "\r") , '', $empty_tab);
-		
-		$output = $js_include."
-		<script type=\"text/javascript\">
-		mm_lastTab = 'tabProps'; 
-		\$j('div#'+mm_lastTab).after('".$empty_tab."'); 
-		mm_lastTab = 'tab".$idBlock."'; ".
-		$js_tab_object.".addTabPage( document.getElementById( \"tab".$idBlock."\" ) ); 
-		\$j('div.sectionBody').before('<div class=\"sectionBody\"><p><strong>Описание изменений:</strong></p><input type=\"text\" name=\"descVersion\" style=\"width:100%\"></p><p><input type=\"checkbox\" name=\"savev\" checked /> сохранить эту версию</p></div>');
-		\$j('.loadversion').click(function(el){
-			\$j.ajax({
-				url: '/assets/plugins/".$folderPlugin."/version.ajax.php?mode=load&file='+\$j(this).attr('rel')+'&id=".$e->params['id']."',
-				 cache: false,
-				error: function(){
-                    alert('Не удалось загрузить данные');
-                },
-				success: function(html){
-					if(html!=''){
-						if(\$j('.oldver').length){
-							\$j('.oldver').val(html);
-						}else{
-							\$j('.phptextarea[name=post]').after('<div style=\"padding:1px 1px 5px 1px; width:100%; height:16px;background-color:#eeeeee; border-top:1px solid #e0e0e0;margin-top:5px\"><span style=\"float:left;color:#707070;font-weight:bold; padding:3px\">Предыдущая версия сниппета</span></div><textarea dir=\"ltr\" name=\oldver\" class=\"phptextarea oldver\" style=\"width:100%; height:370px;\" wrap=\"off\" onchange=\"documentDirty=true;\">'+html+'</textarea>');
-						}
-					}else{
-						alert('Произошла ошибка во время загрузки');
-					}
-				}
-			});
-		});
-		\$j('.delversion').click(function(el){
-			\$j.ajax({
-				url: '/assets/plugins/".$folderPlugin."/version.ajax.php?mode=del&file='+\$j(this).attr('rel')+'&id=".$e->params['id']."',
-				 cache: false,
-				context:\$j(this).parent('li'),
-				error: function(){
-                    alert('Не удалось загрузить данные');
-                },
-				success: function(html){
-					if(html!=''){
-						\$j(this).remove();
-					}else{
-						alert('Произошла ошибка во время удаления');
-					}
-				}
-			});
-		});
-		</script>"; 
-		$e->output($output);
+		$Diff=new ElementVer($modx,'snippet',$folderPlugin);
+		$out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
+		$modx->Event->output($out);
 		break;
 	}
 }
