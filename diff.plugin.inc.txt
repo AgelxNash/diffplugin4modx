@@ -1,5 +1,6 @@
 //<?
 /**************************************/
+
 /** Diff plugin for Modx Evo
 *
 * @version 2.1
@@ -8,14 +9,15 @@
 *
 * @category plugin
 * @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender
-* @internal @properties &idBlock=ID áëîêà;text;Version &folderPlugin=Ïàïêà ïëàãèíà;text;diff &which_jquery=Ïîäêëþ÷èòü jQuery;list;Íå ïîäêëþ÷àòü,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Ñâîé url ê áèáëèîòåêå jQuery;text; &jqname=Èìÿ Jquery ïåðåìåííîé â noConflict;text;j &lang=Ëîêàëèçàöèÿ;list;en,ru;ru
+* @internal @properties &idBlock=ID Ð±Ð»Ð¾ÐºÐ°;text;Version &folderPlugin=ÐŸÐ°Ð¿ÐºÐ° Ð¿Ð»Ð°Ð³Ð¸Ð½Ð°;text;diff &which_jquery=ÐŸÐ¾Ð´ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ jQuery;list;ÐÐµ Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð°Ñ‚ÑŒ,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Ð¡Ð²Ð¾Ð¹ url Ðº Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐµ jQuery;text; &jqname=Ð˜Ð¼Ñ Jquery Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½Ð¾Ð¹ Ð² noConflict;text;j &lang=Ð›Ð¾ÐºÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ;list;en,ru;ru
 * @internal @modx_category Manager and Admin
 *
-* @todo Äîáàâèòü â ïàðàìåòðû âîçìîæíîñòü âûáðàòü èñòîðèþ êàêèõ ýëåìåíòîâ ñîõðàíÿòü
-* @todo Äîáàâèòü ïîääåðæêó ÷àíêîâ
-* @todo Àâòîìàòè÷åñêîå îïðåäåëåíèå ëîêàëèçàöèè
-* @todo Âûíåñòè ïàïêè ñ èñòîðèåé â /assets/cache/
+* @todo Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð² Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ Ð²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ÑÑ‚ÑŒ Ð²Ñ‹Ð±Ñ€Ð°Ñ‚ÑŒ Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÑŽ ÐºÐ°ÐºÐ¸Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÑ‚ÑŒ
+* @todo Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð´Ð´ÐµÑ€Ð¶ÐºÑƒ Ñ‡Ð°Ð½ÐºÐ¾Ð²
+* @todo ÐÐ²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¾Ðµ Ð¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ Ð»Ð¾ÐºÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ð¸
+* @todo Ð’Ñ‹Ð½ÐµÑÑ‚Ð¸ Ð¿Ð°Ð¿ÐºÐ¸ Ñ Ð¸ÑÑ‚Ð¾Ñ€Ð¸ÐµÐ¹ Ð² /assets/cache/
 */
+
 /*************************************/
 include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/lang_'.$lang.'.inc.php');
 include($modx->config['base_path'].'assets/plugins/'.$folderPlugin.'/version.class.php');

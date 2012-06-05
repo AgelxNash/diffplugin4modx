@@ -1,7 +1,7 @@
 <?php
 interface langVer
 {
-    const err_nomodx = 'No access to MODX API';
+   const err_nomodx = 'No access to MODX API';
 	const err_mode = 'Invalid mode';
 	const err_loadjs = 'You must specify a set before calling the jquery forms';
 	const err_noload = 'Unable to load data';

@@ -1,7 +1,7 @@
 <?php
 interface langVer
 {
-    const err_nomodx = 'Нет доступа к MODX API';
+   const err_nomodx = 'Нет доступа к MODX API';
 	const err_mode = 'Установлен некорректный режим';
 	const err_loadjs = 'Для начала необходимо инициализировать jQuery';
 	const err_noload = 'Не удалось загрузить данные';

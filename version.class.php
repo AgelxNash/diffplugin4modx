@@ -4,21 +4,21 @@
 * Diff plugin for Modx Evo
 *
 * en: Class to work with the history of changes in snippets, chunks, templates, modules and plugins
-* ru: Класс для работы с историей изменений в сниппетах, чанках, шаблонах, модулях и плагинах
+* ru: РљР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РёСЃС‚РѕСЂРёРµР№ РёР·РјРµРЅРµРЅРёР№ РІ СЃРЅРёРїРїРµС‚Р°С…, С‡Р°РЅРєР°С…, С€Р°Р±Р»РѕРЅР°С…, РјРѕРґСѓР»СЏС… Рё РїР»Р°РіРёРЅР°С…
 * 
-* Сохранение элемента
+* РЎРѕС…СЂР°РЅРµРЅРёРµ СЌР»РµРјРµРЅС‚Р°
 * <code>
 * $Diff=new ElementVer($modx,'template',$folderPlugin);
 * $Diff->save($modx->Event->params['id'],'post');
 * </code>
 *
-* Удаление элемента
+* РЈРґР°Р»РµРЅРёРµ СЌР»РµРјРµРЅС‚Р°
 * <code>
 * $Diff=new ElementVer($modx,'snippet',$folderPlugin);
 * $Diff->del($modx->Event->params['id']);
 * </code>
 *
-* Вывод формы с версиями
+* Р’С‹РІРѕРґ С„РѕСЂРјС‹ СЃ РІРµСЂСЃРёСЏРјРё
 * <code>
 * $Diff=new ElementVer($modx,'snippet',$folderPlugin);
 * $out=$Diff->loadJs($idBlock,$which_jquery,$jqname,$js_src_type);
@@ -33,37 +33,36 @@
 * @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
 *
 * @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender
-* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &lang=Локализация;list;en,ru;ru
+* @internal @properties &idBlock=ID Р±Р»РѕРєР°;text;Version &folderPlugin=РџР°РїРєР° РїР»Р°РіРёРЅР°;text;diff &which_jquery=РџРѕРґРєР»СЋС‡РёС‚СЊ jQuery;list;РќРµ РїРѕРґРєР»СЋС‡Р°С‚СЊ,/assets/js/,google code,custom url;/assets/js/ &js_src_type=РЎРІРѕР№ url Рє Р±РёР±Р»РёРѕС‚РµРєРµ jQuery;text; &jqname=РРјСЏ Jquery РїРµСЂРµРјРµРЅРЅРѕР№ РІ noConflict;text;j &lang=Р›РѕРєР°Р»РёР·Р°С†РёСЏ;list;en,ru;ru
 * @internal @modx_category Manager and Admin
 *
-* @todo Добавить в параметры возможность выбрать историю каких элементов сохранять
-* @todo Добавить поддержку чанков
-* @todo Автоматическое определение локализации
-* @todo Вынести папки с историей в /assets/cache/
+* @todo Р”РѕР±Р°РІРёС‚СЊ РІ РїР°СЂР°РјРµС‚СЂС‹ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ РІС‹Р±СЂР°С‚СЊ РёСЃС‚РѕСЂРёСЋ РєР°РєРёС… СЌР»РµРјРµРЅС‚РѕРІ СЃРѕС…СЂР°РЅСЏС‚СЊ
+* @todo Р”РѕР±Р°РІРёС‚СЊ РїРѕРґРґРµСЂР¶РєСѓ С‡Р°РЅРєРѕРІ
+* @todo РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ РѕРїСЂРµРґРµР»РµРЅРёРµ Р»РѕРєР°Р»РёР·Р°С†РёРё
+* @todo Р’С‹РЅРµСЃС‚Рё РїР°РїРєРё СЃ РёСЃС‚РѕСЂРёРµР№ РІ /assets/cache/
 */
 /*************************************/
-
 class ElementVer implements langVer{
-	/** @var string Файл со списокм версий и описаний всех элементов */
+	/** @var string Р¤Р°Р№Р» СЃРѕ СЃРїРёСЃРѕРєРј РІРµСЂСЃРёР№ Рё РѕРїРёСЃР°РЅРёР№ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ */
 	public $verfile='';
-	/** @var string Название папки с плагином */
+	/** @var string РќР°Р·РІР°РЅРёРµ РїР°РїРєРё СЃ РїР»Р°РіРёРЅРѕРј */
 	public $dir='';
-	/** @var class Экземпляр парсера modx */
+	/** @var class Р­РєР·РµРјРїР»СЏСЂ РїР°СЂСЃРµСЂР° modx */
 	private $modx;
-	/** @var string Текущий режим с которым работаем */
+	/** @var string РўРµРєСѓС‰РёР№ СЂРµР¶РёРј СЃ РєРѕС‚РѕСЂС‹Рј СЂР°Р±РѕС‚Р°РµРј */
 	private $active='';
-	/** @var string  Имя jQuery переменной с которой дальше будем работать */
+	/** @var string  РРјСЏ jQuery РїРµСЂРµРјРµРЅРЅРѕР№ СЃ РєРѕС‚РѕСЂРѕР№ РґР°Р»СЊС€Рµ Р±СѓРґРµРј СЂР°Р±РѕС‚Р°С‚СЊ */
 	private $jqname='';
-	/** @var string Текущий элемент с которым работаем */
+	/** @var string РўРµРєСѓС‰РёР№ СЌР»РµРјРµРЅС‚ СЃ РєРѕС‚РѕСЂС‹Рј СЂР°Р±РѕС‚Р°РµРј */
 	private $ver=0;
 	
 	/**
-	* Конструктор класса
-	* Название папки можно было бы и не передавать, но т.к. в админке modx все равно прописать ее необходимо, то не будем писать лишний код
-	* @param class $modx экземпляр парсера modx
-	* @param string $active тип элемента с которым будем работать (snippet | template | plugin | module | chunk)
-	* @param string $dir название папки с плагином
-	* @param string $ver файл в котором будут храниться все версии
+	* РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР°
+	* РќР°Р·РІР°РЅРёРµ РїР°РїРєРё РјРѕР¶РЅРѕ Р±С‹Р»Рѕ Р±С‹ Рё РЅРµ РїРµСЂРµРґР°РІР°С‚СЊ, РЅРѕ С‚.Рє. РІ Р°РґРјРёРЅРєРµ modx РІСЃРµ СЂР°РІРЅРѕ РїСЂРѕРїРёСЃР°С‚СЊ РµРµ РЅРµРѕР±С…РѕРґРёРјРѕ, С‚Рѕ РЅРµ Р±СѓРґРµРј РїРёСЃР°С‚СЊ Р»РёС€РЅРёР№ РєРѕРґ
+	* @param class $modx СЌРєР·РµРјРїР»СЏСЂ РїР°СЂСЃРµСЂР° modx
+	* @param string $active С‚РёРї СЌР»РµРјРµРЅС‚Р° СЃ РєРѕС‚РѕСЂС‹Рј Р±СѓРґРµРј СЂР°Р±РѕС‚Р°С‚СЊ (snippet | template | plugin | module | chunk)
+	* @param string $dir РЅР°Р·РІР°РЅРёРµ РїР°РїРєРё СЃ РїР»Р°РіРёРЅРѕРј
+	* @param string $ver С„Р°Р№Р» РІ РєРѕС‚РѕСЂРѕРј Р±СѓРґСѓС‚ С…СЂР°РЅРёС‚СЊСЃСЏ РІСЃРµ РІРµСЂСЃРёРё
     */
 	function __construct(&$modx,$active,$dir,$ver='version.inc'){
 		$this->modx=$modx;
@@ -78,7 +77,7 @@ class ElementVer implements langVer{
 		
 		/*
 		* en: Still have to specify the folder name in the parameter plug-in
-		* ru: Все равно придется указывать название папки в параметре плагина
+		* ru: Р’СЃРµ СЂР°РІРЅРѕ РїСЂРёРґРµС‚СЃСЏ СѓРєР°Р·С‹РІР°С‚СЊ РЅР°Р·РІР°РЅРёРµ РїР°РїРєРё РІ РїР°СЂР°РјРµС‚СЂРµ РїР»Р°РіРёРЅР°
 		*
 		$dir=pathinfo(__FILE__);
 		if(!defined('__DIR__')) { 
@@ -93,10 +92,10 @@ class ElementVer implements langVer{
 	}
 
 	/**
-	* Функция генирации пути к папки 
-	* @param bool $full какой путь к папке получить: с http или относительно корня веб-сервера. По умолчанию относительно корня.
-	* @param bool $mode Включить в путь папку с названием режим с которым сейчас работаем (чанк, шаблон, и т.д.) По умолчанию вместе с папкой
-	* @return string Путь к папке 
+	* Р¤СѓРЅРєС†РёСЏ РіРµРЅРёСЂР°С†РёРё РїСѓС‚Рё Рє РїР°РїРєРё 
+	* @param bool $full РєР°РєРѕР№ РїСѓС‚СЊ Рє РїР°РїРєРµ РїРѕР»СѓС‡РёС‚СЊ: СЃ http РёР»Рё РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РєРѕСЂРЅСЏ РІРµР±-СЃРµСЂРІРµСЂР°. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РєРѕСЂРЅСЏ.
+	* @param bool $mode Р’РєР»СЋС‡РёС‚СЊ РІ РїСѓС‚СЊ РїР°РїРєСѓ СЃ РЅР°Р·РІР°РЅРёРµРј СЂРµР¶РёРј СЃ РєРѕС‚РѕСЂС‹Рј СЃРµР№С‡Р°СЃ СЂР°Р±РѕС‚Р°РµРј (С‡Р°РЅРє, С€Р°Р±Р»РѕРЅ, Рё С‚.Рґ.) РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РІРјРµСЃС‚Рµ СЃ РїР°РїРєРѕР№
+	* @return string РџСѓС‚СЊ Рє РїР°РїРєРµ 
     */
 	public function GVD($full=true,$mode=true){
 		$dir=($full?$this->modx->config['base_path']:$this->modx->config['site_url']).'assets/plugins/'.$this->dir.'/'.($mode?($this->active.'/'):'');
@@ -104,12 +103,12 @@ class ElementVer implements langVer{
 	}
 	
 	/**
-	* Функция которая инъектит javascript код сгенерированный функцией {@link render}
+	* Р¤СѓРЅРєС†РёСЏ РєРѕС‚РѕСЂР°СЏ РёРЅСЉРµРєС‚РёС‚ javascript РєРѕРґ СЃРіРµРЅРµСЂРёСЂРѕРІР°РЅРЅС‹Р№ С„СѓРЅРєС†РёРµР№ {@link render}
 	* @see {@link render}
-	* @param string $idBlock ID HTML блока который будем вставлять на страницу. По умолчанию Version
-	* @param string $which_jquery Тип подключения jquery к странице (google code | /assets/js/ | custom url | none). По умолчанию /assets/js/
-	* @param string $jqname Имя jQuery переменной с которой дальше будем работать. По умолчанию j
-	* @param string $url Адрес по которому будем грузить jQuery библиотеку если which_jquery установлен в custom url. По умолчанию пусто.
+	* @param string $idBlock ID HTML Р±Р»РѕРєР° РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµРј РІСЃС‚Р°РІР»СЏС‚СЊ РЅР° СЃС‚СЂР°РЅРёС†Сѓ. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ Version
+	* @param string $which_jquery РўРёРї РїРѕРґРєР»СЋС‡РµРЅРёСЏ jquery Рє СЃС‚СЂР°РЅРёС†Рµ (google code | /assets/js/ | custom url | none). РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ /assets/js/
+	* @param string $jqname РРјСЏ jQuery РїРµСЂРµРјРµРЅРЅРѕР№ СЃ РєРѕС‚РѕСЂРѕР№ РґР°Р»СЊС€Рµ Р±СѓРґРµРј СЂР°Р±РѕС‚Р°С‚СЊ. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ j
+	* @param string $url РђРґСЂРµСЃ РїРѕ РєРѕС‚РѕСЂРѕРјСѓ Р±СѓРґРµРј РіСЂСѓР·РёС‚СЊ jQuery Р±РёР±Р»РёРѕС‚РµРєСѓ РµСЃР»Рё which_jquery СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ custom url. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РїСѓСЃС‚Рѕ.
 	* @return string HTML 
     */
 	public function loadJs($idBlock='Version',$which_jquery='/assets/js/',$jqname='j',$url=''){
@@ -141,12 +140,12 @@ class ElementVer implements langVer{
 	}
 	
 	/**
-	* Во время сохранения элемента сохраняем его версию и данные
-	* @param int $id ID элемента
-	* @param string $postname имя POST переменной в которой передается содержимое элемента. По умолчанию post
-	* @param string $descV имя POST переменной от куда брать описание текущей версии. По умолчанию descVersion
-	* @param string $save имя POST переменной обозначающий сохранять ли текущую версию. По умолчанию savev
-	* @return bool статус сохранения истории элемента
+	* Р’Рѕ РІСЂРµРјСЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ СЌР»РµРјРµРЅС‚Р° СЃРѕС…СЂР°РЅСЏРµРј РµРіРѕ РІРµСЂСЃРёСЋ Рё РґР°РЅРЅС‹Рµ
+	* @param int $id ID СЌР»РµРјРµРЅС‚Р°
+	* @param string $postname РёРјСЏ POST РїРµСЂРµРјРµРЅРЅРѕР№ РІ РєРѕС‚РѕСЂРѕР№ РїРµСЂРµРґР°РµС‚СЃСЏ СЃРѕРґРµСЂР¶РёРјРѕРµ СЌР»РµРјРµРЅС‚Р°. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ post
+	* @param string $descV РёРјСЏ POST РїРµСЂРµРјРµРЅРЅРѕР№ РѕС‚ РєСѓРґР° Р±СЂР°С‚СЊ РѕРїРёСЃР°РЅРёРµ С‚РµРєСѓС‰РµР№ РІРµСЂСЃРёРё. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ descVersion
+	* @param string $save РёРјСЏ POST РїРµСЂРµРјРµРЅРЅРѕР№ РѕР±РѕР·РЅР°С‡Р°СЋС‰РёР№ СЃРѕС…СЂР°РЅСЏС‚СЊ Р»Рё С‚РµРєСѓС‰СѓСЋ РІРµСЂСЃРёСЋ. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ savev
+	* @return bool СЃС‚Р°С‚СѓСЃ СЃРѕС…СЂР°РЅРµРЅРёСЏ РёСЃС‚РѕСЂРёРё СЌР»РµРјРµРЅС‚Р°
     */
 	public function save($id,$postname='post',$descV='descVersion',$save='savev'){
 		if(!(isset($_POST[$postname]) && $_POST[$postname]!='')){
@@ -200,9 +199,9 @@ class ElementVer implements langVer{
 	}
 	
 	/**
-	* Во время удаления элемента удаляем всю его историю
-	* @param int $id ID элемента
-	* @return bool статус удаления всей истории элемента
+	* Р’Рѕ РІСЂРµРјСЏ СѓРґР°Р»РµРЅРёСЏ СЌР»РµРјРµРЅС‚Р° СѓРґР°Р»СЏРµРј РІСЃСЋ РµРіРѕ РёСЃС‚РѕСЂРёСЋ
+	* @param int $id ID СЌР»РµРјРµРЅС‚Р°
+	* @return bool СЃС‚Р°С‚СѓСЃ СѓРґР°Р»РµРЅРёСЏ РІСЃРµР№ РёСЃС‚РѕСЂРёРё СЌР»РµРјРµРЅС‚Р°
     */
 	public function del($id){
 		$dir=$this->GVD(true,true);
@@ -233,10 +232,10 @@ class ElementVer implements langVer{
 	}
 	
 	/**
-	* Получаем данные об элементе из файла с историей
-	* @param int $id ID элемента
+	* РџРѕР»СѓС‡Р°РµРј РґР°РЅРЅС‹Рµ РѕР± СЌР»РµРјРµРЅС‚Рµ РёР· С„Р°Р№Р»Р° СЃ РёСЃС‚РѕСЂРёРµР№
+	* @param int $id ID СЌР»РµРјРµРЅС‚Р°
     * @access private
-	* @return string HTML код с содержимым таблицы вида <tr><td>...data...</td></tr>
+	* @return string HTML РєРѕРґ СЃ СЃРѕРґРµСЂР¶РёРјС‹Рј С‚Р°Р±Р»РёС†С‹ РІРёРґР° <tr><td>...data...</td></tr>
     */
 	private function getDataVer($id){
 		$out=array();
@@ -280,7 +279,7 @@ class ElementVer implements langVer{
 	}
 	
 	/**
-	* Формируем html с JavaScript'ом для отображения текста в нужных местах
+	* Р¤РѕСЂРјРёСЂСѓРµРј html СЃ JavaScript'РѕРј РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ С‚РµРєСЃС‚Р° РІ РЅСѓР¶РЅС‹С… РјРµСЃС‚Р°С…
     * @access private
 	* @return string HTML 
     */
@@ -315,7 +314,7 @@ class ElementVer implements langVer{
 				break;
 			}
 			case 'chunk':{
-				/** @todo поддержка чанков */
+				/** @todo РїРѕРґРґРµСЂР¶РєР° С‡Р°РЅРєРѕРІ */
 				exit();
 			}
 			default:{

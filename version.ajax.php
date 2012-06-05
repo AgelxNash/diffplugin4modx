@@ -1,10 +1,11 @@
 <?
 /**************************************
+
 /** 
 * Diff plugin for Modx Evo
 *
 * en: Class to work with the history of changes in snippets, chunks, templates, modules and plugins
-* ru: Класс для работы с историей изменений в сниппетах, чанках, шаблонах, модулях и плагинах
+* ru: РљР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РёСЃС‚РѕСЂРёРµР№ РёР·РјРµРЅРµРЅРёР№ РІ СЃРЅРёРїРїРµС‚Р°С…, С‡Р°РЅРєР°С…, С€Р°Р±Р»РѕРЅР°С…, РјРѕРґСѓР»СЏС… Рё РїР»Р°РіРёРЅР°С…
 *
 * @version 2.0
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
@@ -13,6 +14,7 @@
 * @link http://agel-nash.ru
 * 
 */
+
 /*************************************/
 $database_type = "";
 $database_server = "";
@@ -37,7 +39,7 @@ require_once(MODX_BASE_PATH.'manager/includes/document.parser.class.inc.php');
 $modx = new DocumentParser; 
 /*
 *	en: The database we don't need
-*	ru: База данных нам не нужна
+*	ru: Р‘Р°Р·Р° РґР°РЅРЅС‹С… РЅР°Рј РЅРµ РЅСѓР¶РЅР°
 */
 //$modx->db->connect(); 
 $modx->getSettings();
@@ -55,7 +57,7 @@ $mode=isset($_GET['mode'])?$_GET['mode']:'';
 
 /*
 *	en: __DIR__ Not available on windows machines
-*	ru: __DIR__ не доступна на windows машинах
+*	ru: __DIR__ РЅРµ РґРѕСЃС‚СѓРїРЅР° РЅР° windows РјР°С€РёРЅР°С…
 */
 $dir=pathinfo(__FILE__);
 $dir=$dir['dirname'];
