@@ -16,6 +16,8 @@
 */
 
 /*************************************/
+header("Content-type: text/html; charset=UTF-8");
+
 $database_type = "";
 $database_server = "";
 $database_user = "";
@@ -52,7 +54,8 @@ $active=isset($_GET['active'])?$_GET['active']:'';
 if(!(isset($_SESSION['mgrPermissions']['edit_'.$active]) && isset($_SESSION['mgrPermissions']['save_'.$active]) && $_SESSION['mgrPermissions']['save_'.$active]==1 && $_SESSION['mgrPermissions']['edit_'.$active]==1 && isset($_SESSION['mgrPermissions']['delete_'.$active]) && $_SESSION['mgrPermissions']['delete_'.$active]==1)){
 	return;
 }
-
+	
+	
 $mode=isset($_GET['mode'])?$_GET['mode']:'';
 
 /*

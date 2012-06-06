@@ -25,19 +25,19 @@
 * $modx->Event->output($out);
 * </code>
 *
-* @version 2.1
+* @version 2.2
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
-* @date 31.05.2012
+* @date 06.06.2012
 * @copyright 2012 Agel Nash
 * @link http://agel-nash.ru
 * @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
 *
-* @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender
+* @category plugin
+* @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender,OnDocFormDelete,OnDocFormRender,OnDocFormSave
 * @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &lang=Локализация;list;en,ru;ru
 * @internal @modx_category Manager and Admin
 *
 * @todo Добавить в параметры возможность выбрать историю каких элементов сохранять
-* @todo Добавить поддержку чанков
 * @todo Автоматическое определение локализации
 * @todo Вынести папки с историей в /assets/cache/
 */
@@ -69,7 +69,7 @@ class ElementVer implements langVer{
 		if(!(is_object($this->modx) && isset($this->modx->Event->name))){
 			exit(langVer::err_nomodx);
 		}
-		if(in_array($active,array('snippet','template','plugin','module','chunk'))){
+		if(in_array($active,array('snippet','template','plugin','module','chunk','document'))){
 			$this->active=$active;
 		}else{
 			exit(langVer::err_mode);
@@ -151,21 +151,19 @@ class ElementVer implements langVer{
 		if(!(isset($_POST[$postname]) && $_POST[$postname]!='')){
 			return false;
 		}
-		
 		$desc=isset($_POST[$descV])?$_POST[$descV]:'';
 		
 		if(!isset($_POST[$save])){
 			return false;
 		}
 		$put=base64_encode($_POST[$postname]);
-
 		$dir=$this->GVD(true,true);
 		if(!is_dir($dir.$id)) {
 			if(!mkdir($dir.$id,0777,true)){
 				return false;
 			}
 		}
-
+		
 		$flag=false;
 		$file=md5($put);
 		if(!file_exists($dir.$id.'/'.md5($put))){
@@ -285,6 +283,7 @@ class ElementVer implements langVer{
     */
 	private function render($idBlock){
 		$output='';
+		$tabs=true;
 		if($this->jqname==''){
 			exit(langVer::err_loadjs);
 		}
@@ -293,84 +292,146 @@ class ElementVer implements langVer{
 				$js_tab_object='tpSnippet';
 				$id=$this->modx->Event->params['id'];
 				$lastTab='tabProps';
+				$name='post';
 				break;
 			}
 			case 'template':{
 				$js_tab_object='tpResources';
 				$lastTab='tabAssignedTVs';
+				$name='post';
 				$id=$this->modx->Event->params['id'];
 				break;
 			}
 			case 'plugin':{
 				$js_tab_object='tpSnippet';
 				$lastTab='tabEvents';
+				$name='post';
 				$id=$this->modx->Event->params['id'];
 				break;
 			}
 			case 'module':{
 				$js_tab_object='tpModule';
 				$lastTab='tabDepend';
+				$name='post';
 				$id=$this->modx->Event->params['id'];
 				break;
 			}
 			case 'chunk':{
-				/** @todo поддержка чанков */
-				exit();
+				$tabs=false;
+				$name='post';
+				$id=$this->modx->Event->params['id'];
+				break;
+			}
+			case 'document':{
+				$js_tab_object='tpSettings';
+				$lastTab='tabSettings';
+				$name='ta';
+				$id=$this->modx->Event->params['id'];
+				break;
 			}
 			default:{
 				exit(langVer::err_mode);
 			}
 		}
-		
-		$output=$this->getDataVer($id);
-		
-		$output = '<div class="tab-page" id="tab'.$idBlock.'"><h2 class="tab">'.langVer::form_nameblock.'</h2><table width="90%" border="0" cellspacing="0" cellpadding="0" >'.$output.'</table></div>';
-		$output=str_replace(array("\n", "\t", "\r"), '', $output);
-		
-		$output = "<script type=\"text/javascript\">
-		mm_lastTab = '".$lastTab."'; 
-		\$".$this->jqname."('div#'+mm_lastTab).after('".$output."'); 
-		mm_lastTab = 'tab".$idBlock."'; ".
-		$js_tab_object.".addTabPage( document.getElementById( \"tab".$idBlock."\" ) ); 
-		\$".$this->jqname."('div.sectionBody:first').before('<div class=\"sectionBody\"><p><strong>".langVer::form_descver.":</strong></p><input type=\"text\" name=\"descVersion\" style=\"width:100%\"></p><p><input type=\"checkbox\" name=\"savev\" checked /> ".langVer::form_savever."</p></div>');
-		\$".$this->jqname."('.loadversion').click(function(el){
-			\$".$this->jqname.".ajax({
-				url: '".$this->GVD(false,false)."version.ajax.php?mode=load&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
-				 cache: false,
-				error: function(){
-                    alert('".langVer::err_noload."');
-                },
-				success: function(html){
-					if(html!=''){
-						if(\$".$this->jqname."('.oldver').length){
-							\$".$this->jqname."('.oldver').val(html);
+		if($tabs){
+			$output=$this->getDataVer($id);
+			$output = '<div class="tab-page" id="tab'.$idBlock.'"><h2 class="tab">'.langVer::form_nameblock.'</h2><table width="90%" border="0" cellspacing="0" cellpadding="0" >'.$output.'</table></div>';
+			$output=str_replace(array("\n", "\t", "\r"), '', $output);
+			
+			$output = "<script type=\"text/javascript\">
+			mm_lastTab = '".$lastTab."'; 
+			\$".$this->jqname."('div#'+mm_lastTab).after('".$output."'); 
+			mm_lastTab = 'tab".$idBlock."'; ".
+			$js_tab_object.".addTabPage( document.getElementById( \"tab".$idBlock."\" ) ); 
+			\$".$this->jqname."('div.sectionBody:first').before('<div class=\"sectionBody\"><p><strong>".langVer::form_descver.":</strong></p><input type=\"text\" name=\"descVersion\" style=\"width:100%\"></p><p><input type=\"checkbox\" name=\"savev\" checked /> ".langVer::form_savever."</p></div>');
+			\$".$this->jqname."('.loadversion').click(function(el){
+			alert('".$this->GVD(false,false)."version.ajax.php?mode=load&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."');
+				\$".$this->jqname.".ajax({
+					url: '".$this->GVD(false,false)."version.ajax.php?mode=load&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
+					 cache: false,
+					error: function(){
+						alert('".langVer::err_noload."');
+					},
+					success: function(html){
+						if(html!=''){
+							if(\$".$this->jqname."('.oldver').length){
+								\$".$this->jqname."('.oldver').val(html);
+							}else{
+								\$".$this->jqname."('textarea[name=".$name."]').after('<div style=\"padding:1px 1px 5px 1px; width:100%; height:16px;background-color:#eeeeee; border-top:1px solid #e0e0e0;margin-top:5px\"><span style=\"float:left;color:#707070;font-weight:bold; padding:3px\">".langVer::form_beforever."</span></div><textarea dir=\"ltr\" name=\oldver\" class=\"phptextarea oldver\" style=\"width:100%; height:370px;\" wrap=\"off\" onchange=\"documentDirty=true;\">'+html+'</textarea>');
+							}
 						}else{
-							\$".$this->jqname."('.phptextarea[name=post]').after('<div style=\"padding:1px 1px 5px 1px; width:100%; height:16px;background-color:#eeeeee; border-top:1px solid #e0e0e0;margin-top:5px\"><span style=\"float:left;color:#707070;font-weight:bold; padding:3px\">".langVer::form_beforever."</span></div><textarea dir=\"ltr\" name=\oldver\" class=\"phptextarea oldver\" style=\"width:100%; height:370px;\" wrap=\"off\" onchange=\"documentDirty=true;\">'+html+'</textarea>');
+							alert('".langVer::err_fatalload."');
 						}
-					}else{
-						alert('".langVer::err_fatalload."');
 					}
-				}
+				});
 			});
-		});
-		\$".$this->jqname."('.delversion').click(function(el){
-			\$".$this->jqname.".ajax({
-				url: '".$this->GVD(false,false)."version.ajax.php?mode=del&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
-				 cache: false,
-				context:\$".$this->jqname."(this).parent('li'),
-				error: function(){
-                    alert('".langVer::err_noload."');
-                },
-				success: function(html){
-					if(html!=''){
-						\$".$this->jqname."(this).remove();
-					}else{
-						alert('".langVer::err_del."');
+			\$".$this->jqname."('.delversion').click(function(el){
+				\$".$this->jqname.".ajax({
+					url: '".$this->GVD(false,false)."version.ajax.php?mode=del&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
+					 cache: false,
+					context:\$".$this->jqname."(this).parent('li'),
+					error: function(){
+						alert('".langVer::err_noload."');
+					},
+					success: function(html){
+						if(html!=''){
+							\$".$this->jqname."(this).remove();
+						}else{
+							alert('".langVer::err_del."');
+						}
 					}
-				}
+				});
 			});
-		});
-		</script>";
+			</script>";
+		}else{
+			$output=$this->getDataVer($id);
+			$output = '<div class="sectionBody"><h2 class="tab">'.langVer::form_nameblock.'</h2><table width="90%" border="0" cellspacing="0" cellpadding="0" >'.$output.'</table></div>';
+			$output=str_replace(array("\n", "\t", "\r"), '', $output); 
+			
+			$output.="<script type=\"text/javascript\">
+			\$".$this->jqname."('div.sectionBody:first table tr:last').before('<tr><td style=\"padding-top:5px\" valign=\"top\" align=\"left\"><p>".langVer::form_descver.":</p></td><td style=\"padding-top:5px\" valign=\"top\" align=\"left\"><span style=\"font-family:\'Courier New\', Courier, mono\">&nbsp; </span><input type=\"text\" style=\"width:300px\" name=\"descVersion\" ></p></td></tr><tr><td colspan=\"2\" style=\"padding-top:5px\" valign=\"top\" align=\"left\"><p><input type=\"checkbox\" name=\"savev\" checked /> ".langVer::form_savever."</p></td></tr>'); 
+			
+			\$".$this->jqname."('.loadversion').click(function(el){
+			
+				\$".$this->jqname.".ajax({
+					url: '".$this->GVD(false,false)."version.ajax.php?mode=load&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
+					 cache: false,
+					error: function(){
+						alert('".langVer::err_noload."');
+					},
+					success: function(html){
+						if(html!=''){
+							if(\$".$this->jqname."('.oldver').length){
+								\$".$this->jqname."('.oldver').val(html);
+							}else{
+								\$".$this->jqname."('textarea[name=".$name."]').after('<div style=\"padding:1px 1px 5px 1px; width:100%; height:16px;background-color:#eeeeee; border-top:1px solid #e0e0e0;margin-top:5px\"><span style=\"float:left;color:#707070;font-weight:bold; padding:3px\">".langVer::form_beforever."</span></div><textarea dir=\"ltr\" name=\oldver\" class=\"phptextarea oldver\" style=\"width:100%; height:370px;\" wrap=\"off\" onchange=\"documentDirty=true;\">'+html+'</textarea>');
+							}
+						}else{
+							alert('".langVer::err_fatalload."');
+						}
+					}
+				});
+			});
+			\$".$this->jqname."('.delversion').click(function(el){
+				\$".$this->jqname.".ajax({
+					url: '".$this->GVD(false,false)."version.ajax.php?mode=del&active=".$this->active."&file='+\$".$this->jqname."(this).attr('rel')+'&id=".$id."',
+					 cache: false,
+					context:\$".$this->jqname."(this).parent('li'),
+					error: function(){
+						alert('".langVer::err_noload."');
+					},
+					success: function(html){
+						if(html!=''){
+							\$".$this->jqname."(this).remove();
+						}else{
+							alert('".langVer::err_del."');
+						}
+					}
+				});
+			});
+			</script>";
+			
+		}
 		return $output;
 	}
 }
