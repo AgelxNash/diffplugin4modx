@@ -25,7 +25,7 @@
 * $modx->Event->output($out);
 * </code>
 *
-* @version 2.2
+* @version 2.3
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
 * @date 06.06.2012
 * @copyright 2012 Agel Nash
@@ -34,11 +34,9 @@
 *
 * @category plugin
 * @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender,OnDocFormDelete,OnDocFormRender,OnDocFormSave
-* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &lang=Локализация;list;en,ru;ru
+* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &ignoredChunk=ID игнорируемых чанков;text; &ignoredSnippet=ID игнорируемых сниппетов;text; &ignoredPlugin=ID игнорируемых плагинов;text; &ignoredDoc=ID игнорируемых документов;text; &ignoredModule=ID игнорируемых модулей;text; &ignoredTPL=ID игнорируемых шаблонов;text;
 * @internal @modx_category Manager and Admin
 *
-* @todo Добавить в параметры возможность выбрать историю каких элементов сохранять
-* @todo Автоматическое определение локализации
 * @todo Вынести папки с историей в /assets/cache/
 */
 /*************************************/
@@ -90,7 +88,80 @@ class ElementVer implements langVer{
 		$this->dir=$dir;
 		$this->verfile=$ver;
 	}
-
+	
+	/*
+	* Определяем нужно ли игнорировать этот элемент
+	* @param string $idList список id элементов через запятую
+	* @return bool игнорировать ли текущий документ
+	* @see DocManagerBackend::processRange() в файле dm_backend.class.php из модуля Doc Manager
+	*/
+	public function ignored($idList=''){
+		if(trim($idList)!=''){
+			$list=$this->processRange($idList);
+			if(in_array($this->modx->Event->params['id'],$list)){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	* Формируем массив с списком ID элементов которые нужно игнорировать
+	* @param string $pids список id элементов через запятую. Формат как в DocManager
+	* @return array Список ID элементов
+	* @see DocManagerBackend::processRange() в файле dm_backend.class.php из модуля Doc Manager
+	*
+	* Можно использовать следующий синтаксис при задании диапазона (вместо "n" указывайте число ID ресурса):
+	* n* - изменить свойства ресурса с ID=n и непосредственных дочерних ресурсов;
+	* n** - изменить свойства ресурса с ID=n и ВСЕХ его дочерних ресурсов;
+	* n-n2 - изменить свойства для всех ресурсов, ID которых находятся в указанном диапазоне;
+	* n - изменить свойства для одного ресурса с ID=n;
+	* n*,n**,n-n2,n - можно сразу указать несколько диапазонов, разделяя их запятыми.
+	* 
+	*
+	* Пример: 1*,4**,2-20,25 - будут изменены свойства для ресурса с ID=1 и его непосредственных дочерних ресурсов, ресурса с ID=4 и всех его дочерних ресурсов, ресурсов с ID в диапазоне от 2 до 20, и ресурса с ID=25.
+	*
+    */
+	private function processRange($pids) {
+		$values = explode(',', $pids);
+		
+		foreach ($values as $key => $value) {
+			$value=trim($value);
+			if (preg_match('/^[\d]+\-[\d]+$/', $value)){
+				$tmp=explode('-', $value);
+				$range=$tmp[1]-$tmp[0];
+				for ($i=0; $i<=$range; $i++) {
+					$idarray[] = ($i + $tmp[0]);
+				}
+			}elseif(preg_match('/^[\d]+$/', $value, $match)){
+				$idarray[] = ($i + $match[0]);
+			}
+			elseif(preg_match('/^[\d]+\*$/', $value, $match) && $this->active=='document') {
+				$match = rtrim($match[0], '*');
+				$group = $this->modx->db->select('id', $this->modx->getFullTablename('site_content'), 'parent=' . $match);
+				$idarray[] = $match;
+				if ($this->modx->db->getRecordCount($group) > 0){
+					while ($row = $this->modx->db->getRow($group)) {
+						$idarray[] = ($row['id']);
+					}
+				}
+			}elseif(preg_match('/^[\d]+\*\*$/', $value, $match) && $this->active=='document'){
+				$match = rtrim($match[0], '**');
+				$idarray[] = $match;
+				for ($i = 0; $i < count($idarray); $i++){
+					$where = 'parent=' . $idarray[$i];
+					$rs = $this->modx->db->select('id', $this->modx->getFullTableName('site_content'), $where);
+					if ($this->modx->db->getRecordCount($rs) > 0) {
+						while ($row = $this->modx->db->getRow($rs)) {
+							$idarray[] = $row['id'];
+						}
+					}
+				}
+			}
+		}
+		return $idarray;
+	}
+	
 	/**
 	* Функция генирации пути к папки 
 	* @param bool $full какой путь к папке получить: с http или относительно корня веб-сервера. По умолчанию относительно корня.
