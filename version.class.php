@@ -25,16 +25,16 @@
 * $modx->Event->output($out);
 * </code>
 *
-* @version 2.3
+* @version 2.5
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
-* @date 06.06.2012
+* @date 20.07.2012
 * @copyright 2012 Agel Nash
 * @link http://agel-nash.ru
 * @license http://www.opensource.org/licenses/lgpl-3.0.html LGPL 3.0
 *
 * @category plugin
 * @internal @event OnTempFormDelete,OnTempFormSave,OnTempFormRender,OnSnipFormDelete,OnSnipFormSave,OnSnipFormRender,OnPluginFormDelete,OnPluginFormSave,OnPluginFormRender,OnModFormDelete,OnModFormSave,OnModFormRender,OnChunkFormDelete,OnChunkFormSave,OnChunkFormRender,OnDocFormDelete,OnDocFormRender,OnDocFormSave
-* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &ignoredChunk=ID игнорируемых чанков;text; &ignoredSnippet=ID игнорируемых сниппетов;text; &ignoredPlugin=ID игнорируемых плагинов;text; &ignoredDoc=ID игнорируемых документов;text; &ignoredModule=ID игнорируемых модулей;text; &ignoredTPL=ID игнорируемых шаблонов;text;
+* @internal @properties &idBlock=ID блока;text;Version &folderPlugin=Папка плагина;text;diff &which_jquery=Подключить jQuery;list;Не подключать,/assets/js/,google code,custom url;/assets/js/ &js_src_type=Свой url к библиотеке jQuery;text; &jqname=Имя Jquery переменной в noConflict;text;j &ignoredChunk=ID игнорируемых чанков;text; &ignoredSnippet=ID игнорируемых сниппетов;text; &ignoredPlugin=ID игнорируемых плагинов;text; &ignoredDoc=ID игнорируемых документов;text; &ignoredModule=ID игнорируемых модулей;text; &ignoredTPL=ID игнорируемых шаблонов;text; &countTPL=Кол-во версий одного шаблона;text; &countChunk=Кол-во версий одного чанка;text; &countPlugin=Кол-во версий одного плагина;text; &countModule=Кол-во версий одного модуля;text; &countSnippet=Кол-во версий одного сниппета;text; &countDoc=Кол-во версий одного документа;text;
 * @internal @modx_category Manager and Admin
 *
 * @todo Вынести папки с историей в /assets/cache/
@@ -53,6 +53,8 @@ class ElementVer implements langVer{
 	private $jqname='';
 	/** @var string Текущий элемент с которым работаем */
 	private $ver=0;
+	/** @var integer Сколько значений одного элемента максимум можно сохранять*/
+	public $countVer=0;
 	
 	/**
 	* Конструктор класса
@@ -236,9 +238,9 @@ class ElementVer implements langVer{
 		}
 		
 		$flag=false;
-		$file=md5($put);
-		if(!file_exists($dir.$id.'/'.md5($put))){
-			$count=file_put_contents($dir.$id.'/'.md5($put),$put);
+		$file=md5($put.time());
+		if(!file_exists($dir.$id.'/'.$file)){
+			$count=file_put_contents($dir.$id.'/'.$file,$put);
 			if($count<=0){
 				return false;
 			}
@@ -266,7 +268,37 @@ class ElementVer implements langVer{
 		}
 		return true;
 	}
-	
+	/**
+	* Удаление самой старой версии элемента
+	* @param int $id ID элемента
+	* @return bool статус удаления версии
+	*
+	*/
+	private function delVersion($id){
+		/*$dir=$this->GVD(true,true);
+		
+		if(file_exists($dir.$id.'/'.$version)){
+			$flag=unlink($dir.$id.'/'.$version);
+			if(!$flag){
+				return false;
+			}
+			$data=unserialize(file_get_contents($dir.$this->verfile));
+			if(!isset($data[$id])){
+				break;
+			}
+			$tmp=$data[$id];
+			unset($tmp['last']);
+			foreach($tmp as $id=>$item){
+				if($item['file']==$version){
+					unset($data[$id][$id]);
+				}
+			}
+			if(file_put_contents($dir.$this->verfile,serialize($data))){
+				return true;
+			}
+		}*/
+		return false;
+	}
 	/**
 	* Во время удаления элемента удаляем всю его историю
 	* @param int $id ID элемента

@@ -1,0 +1,13 @@
+# and any files in the cache directory
+chunk/*
+document/*
+module/*
+plugin/*
+snippet/*
+template/*
+!chunk/.htaccess
+!document/.htaccess
+!module/.htaccess
+!plugin/.htaccess
+!snippet/.htaccess
+!template/.htaccess
