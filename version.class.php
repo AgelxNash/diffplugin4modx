@@ -25,7 +25,7 @@
 * $modx->Event->output($out);
 * </code>
 *
-* @version 2.5
+* @version 2.6
 * @author Borisov Evgeniy aka Agel Nash (agel_nash@xaker.ru)
 * @date 20.07.2012
 * @copyright 2012 Agel Nash
@@ -257,46 +257,62 @@ class ElementVer implements langVer{
 				$ver=1;
 			}
 			$data[$id]['last']=$ver;
-			$data[$id][$ver]['desc']=$desc;
-			$data[$id][$ver]['file']=$file;
-			$data[$id][$ver]['time']=time();
+			$data[$id][]=array('last'=>$ver,'desc'=>$desc,'file'=>$file,'time'=>time(),'ver'=>$ver);
+			
+			//En: Remove the old version too
+			//Ru: Удаляем слишком старые версии
+			$data[$id]=$this->delVersion($data[$id],$id);
+			
 			$count=file_put_contents($dir.$this->verfile,serialize($data));
 			if($count<=0){
 				return false;
 			}
 		}
+		
 		return true;
 	}
 	/**
 	* Удаление самой старой версии элемента
-	* @param int $id ID элемента
-	* @return bool статус удаления версии
+	* @param array $data массив с версиями текущего элемента
+	* @param int $idElem ID обрабатываемого элемента
+	* @return array массив версий элемента
 	*
 	*/
-	private function delVersion($id){
-		/*$dir=$this->GVD(true,true);
-		
-		if(file_exists($dir.$id.'/'.$version)){
-			$flag=unlink($dir.$id.'/'.$version);
-			if(!$flag){
-				return false;
+	private function delVersion($data,$idElem){
+		$dir=$this->GVD(true,true);
+		if($this->countVer!=0){
+			//Отсортировать массив по дате (старые вверху)
+			$last=$data['last'];
+			unset($data['last']);
+			$tmp=array();
+			foreach($data as $item){
+				$tmp[]=$item['time'];
 			}
-			$data=unserialize(file_get_contents($dir.$this->verfile));
-			if(!isset($data[$id])){
-				break;
-			}
-			$tmp=$data[$id];
-			unset($tmp['last']);
-			foreach($tmp as $id=>$item){
-				if($item['file']==$version){
-					unset($data[$id][$id]);
+			array_multisort($tmp,SORT_DESC,$data);
+
+			$count=0;
+			$tmp=array();
+			foreach($data as $i=>$item){
+				if($count>=$this->countVer && isset($data[$i])){
+					if(file_exists($dir.$idElem.'/'.$item['file'])){
+						unlink($dir.$idElem.'/'.$item['file']);
+					}
+					unset($data[$i]);
+				}else{
+					$tmp[]=$item['time'];
+					$count++;
 				}
 			}
-			if(file_put_contents($dir.$this->verfile,serialize($data))){
-				return true;
+			//отсортировать массив по дате (старые внизу)
+			array_multisort($tmp,SORT_ASC,$data);
+			$tmp=array();
+			$tmp['last']=$last;
+			foreach($data as $item){
+				$tmp[]=$item;
 			}
-		}*/
-		return false;
+			$data=$tmp;
+		}
+		return $data;
 	}
 	/**
 	* Во время удаления элемента удаляем всю его историю
@@ -359,11 +375,11 @@ class ElementVer implements langVer{
 				}else{
 					$tmp=htmlspecialchars($desc['desc']);
 				}
-				if($iditem!=$this->ver){
-					$out[$iditem]=date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$iditem.']: <i>'.$tmp.'</i> ';
-					$out[$iditem].=' &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delversion" rel="'.$desc['file'].'">'.langVer::word_del.'</a> | <a href="#" class="loadversion" rel="'.$desc['file'].'">'.langVer::word_load.' </a> ';
+				if($desc['ver']!=$this->ver){
+					$out[$desc['ver']]=date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$desc['ver'].']: <i>'.$tmp.'</i> ';
+					$out[$desc['ver']].=' &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delversion" rel="'.$desc['file'].'">'.langVer::word_del.'</a> | <a href="#" class="loadversion" rel="'.$desc['file'].'">'.langVer::word_load.' </a> ';
 				}else{
-					$out[$iditem]='<strong>'.date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$iditem.']: <i>'.$tmp.'</i></strong>';
+					$out[$desc['ver']]='<strong>'.date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$desc['ver'].']: <i>'.$tmp.'</i></strong>';
 				}
 			}
 		}
