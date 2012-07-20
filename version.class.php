@@ -251,16 +251,15 @@ class ElementVer implements langVer{
 				$data=unserialize(file_get_contents($dir.'/'.$this->verfile));
 				$ver=$data[$id]['last'];
 				if($flag){
-					$data[$id]['last']++;
 					$ver++;
-					$data[$id][$ver]['file']=$file;
 				}
-				$data[$id][$ver]['desc']=$desc;
 			}else{
-				$data[$id]['last']=1;
-				$data[$id][1]['desc']=$desc;
-				$data[$id][1]['file']=$file;
+				$ver=1;
 			}
+			$data[$id]['last']=$ver;
+			$data[$id][$ver]['desc']=$desc;
+			$data[$id][$ver]['file']=$file;
+			$data[$id][$ver]['time']=time();
 			$count=file_put_contents($dir.$this->verfile,serialize($data));
 			if($count<=0){
 				return false;
@@ -361,10 +360,10 @@ class ElementVer implements langVer{
 					$tmp=htmlspecialchars($desc['desc']);
 				}
 				if($iditem!=$this->ver){
-					$out[$iditem]=langVer::word_ver.' '.$iditem.': <i>'.$tmp.'</i> ';
+					$out[$iditem]=date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$iditem.']: <i>'.$tmp.'</i> ';
 					$out[$iditem].=' &nbsp;&nbsp;&nbsp;&nbsp;<a href="#" class="delversion" rel="'.$desc['file'].'">'.langVer::word_del.'</a> | <a href="#" class="loadversion" rel="'.$desc['file'].'">'.langVer::word_load.' </a> ';
 				}else{
-					$out[$iditem]='<strong>'.langVer::word_ver.' '.$iditem.': <i>'.$tmp.'</i></strong>';
+					$out[$iditem]='<strong>'.date('Y-m-d H:i:s',$desc['time']).' ['.langVer::word_ver.' '.$iditem.']: <i>'.$tmp.'</i></strong>';
 				}
 			}
 		}
