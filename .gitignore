@@ -14,7 +14,6 @@
 /assets/snippets/*
 /assets/templates/*
 /assets/index.html
-/assets/modules/*
 /assets/plugins/managermanager/*
 /assets/plugins/qm/*
 /assets/plugins/tinymce/*
@@ -31,6 +30,7 @@
 !/assets/plugins/diff/plugin/.htaccess
 !/assets/plugins/diff/snippet/.htaccess
 !/assets/plugins/diff/template/.htaccess
+/assets/modules/docmanager/*
 /.htaccess
 /index.php
 /index-ajax.php
